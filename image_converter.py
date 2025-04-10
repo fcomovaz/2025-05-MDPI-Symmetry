@@ -65,6 +65,7 @@ log("4/5 - Dataframe saved")
 # =====================================
 # 5. Optionally, you can download it
 # =====================================
-from google.colab import files
-files.download('images_chinese_mnist.csv') # if you are using colab, this can be helpful
-log("5/5 - Dataframe downloaded")
+# from google.colab import files    # this is not working if you pull the file and run it (need fix)
+# files.download('images_chinese_mnist.csv') # if you are using colab, this can be helpful
+# log("5/5 - Dataframe downloaded")
+log("5/5 - Please, download the file from colab cache files")

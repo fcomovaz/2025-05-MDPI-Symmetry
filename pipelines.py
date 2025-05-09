@@ -22,6 +22,7 @@ def run(stage: int = None, EPOCHS: int = None) -> None:
     if EPOCHS is None:
         EPOCHS = 10
 
+
     avbl_stgs = [i for i in range(0, 6)]  # Stages available to run
     try:
         msg_assert = "Stage {} is not available. Available stages are {}."
@@ -31,7 +32,7 @@ def run(stage: int = None, EPOCHS: int = None) -> None:
         stage = avbl_stgs[-1]
 
     log_info("###########################################")
-    log_info(f"Running from stage {stage}.")
+    log_info(f"Running from stage {stage} with {EPOCHS} epochs.")
     log_info("###########################################")
     constrain_gpu_memory()
 
@@ -168,8 +169,8 @@ def run(stage: int = None, EPOCHS: int = None) -> None:
                 label_hat = y[idx_label]
 
 
-                log_info(f'Probability Distros for {idx}: {y_hat.flatten()}') 
-                # log_info(f'Probability Predicted {idx}: {label_hat}') 
+                log_info(f'Probability Distribut for {idx}: {y_hat.flatten()}') 
+                log_info(f'Probability Predicted for {idx}: {label_hat}') 
                 idx += 1
     if stage <= 6:
         log_info("===========================================")

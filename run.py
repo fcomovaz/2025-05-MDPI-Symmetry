@@ -31,7 +31,8 @@ def main() -> None:
     )
 
     args = parser.parse_args()
-    run(args.stage)
+    print(args)
+    run(args.stage, args.epochs)
 
 
 if __name__ == "__main__":

@@ -23,6 +23,12 @@ def main() -> None:
         default=0,
         help="Stage to run (0, 1, ..., N). Default: 0.",
     )
+    parser.add_argument(
+        "--epochs",
+        type=int,
+        default=10,
+        help="Number of epochs to run. Default: 5.",
+    )
 
     args = parser.parse_args()
     run(args.stage)

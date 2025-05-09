@@ -162,7 +162,7 @@ def run(stage: int = None, EPOCHS: int = None) -> None:
 
                 # 3) predice
                 y_hat = siamese_nn.predict([X_r, X_p], batch_size=32)
-                y_hat = np.round(y_hat, 2)
+                # y_hat = np.round(y_hat, 2)
                 # from label choose the one with highest probability in y_hat
                 # so get the highst index and convert to label
                 idx_label = np.argmax(y_hat.flatten(), axis=0)

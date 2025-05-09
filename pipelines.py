@@ -140,7 +140,11 @@ def run(stage: int = None) -> None:
             log_info(f"-----------------------------------------------")
             log_info(f"Dataset: {d}")
             log_info(f"-----------------------------------------------")
-            df   = pd.read_csv(f"gallery/{d}/data.csv")
+            try:
+                df = pd.read_csv(f"gallery/{d}/data.csv")
+            except:
+                log_warning("Collab env detected. Using subfolder 2025-05-MDPI-Symmetry")
+                df = pd.read_csv(f"2025-05-MDPI-Symmetry/gallery/{d}/data.csv")
             y    = df["label"].values
             X    = df.drop(columns=["label"]).values
             X_r  = (X.reshape(-1,64,64,1).astype(np.float32))

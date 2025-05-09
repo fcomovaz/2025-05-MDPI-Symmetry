@@ -9,7 +9,7 @@ from Logger import *  # logging functions
 
 
 def load_mnist_dataset(
-    normalize: bool = True,
+    normalize: bool = False,
 ) -> Tuple[
     np.ndarray,
     np.ndarray,

@@ -166,8 +166,8 @@ def run(stage: int = None) -> None:
                 label_hat = y[idx_label]
 
 
-                log_info(f'Probability Distros for {idx}: {y_hat.flatten()}') 
-                # log_info(f'Probability Predicted {idx}: {label_hat}') 
+                log_info(f'Probability Distros   for {idx}: {y_hat.flatten()}') 
+                log_info(f'Probability Predicted for {idx}: {label_hat}') 
                 idx += 1
     if stage <= 6:
         log_info("===========================================")

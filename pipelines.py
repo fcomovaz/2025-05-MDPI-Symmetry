@@ -3,7 +3,7 @@ from Dataset import *
 from Logger import *  # logging functions
 
 
-def run(stage: int = 0) -> None:
+def run(stage: int = None) -> None:
     """
     Run the pipeline.
 
@@ -17,7 +17,8 @@ def run(stage: int = 0) -> None:
     """
 
     # assign stage from here
-    stage = 5
+    if stage is None:
+        stage = 5
 
     avbl_stgs = [i for i in range(0, 6)]  # Stages available to run
     try:

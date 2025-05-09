@@ -80,7 +80,7 @@ def run(stage: int = None, EPOCHS: int = None) -> None:
         siamese_nn = make_siamese_model(embedding)
 
         log_info("Compiling the model")
-        opt = tf.keras.optimizers.Adam(learning_rate=0.0001)
+        opt = tf.keras.optimizers.Adam(learning_rate=0.000001)
         _loss = tf.keras.losses.BinaryCrossentropy()
         siamese_nn.compile(optimizer=opt, loss=_loss, metrics=["accuracy"])
 

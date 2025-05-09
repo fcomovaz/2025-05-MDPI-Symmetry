@@ -3,7 +3,7 @@ from Dataset import *
 from Logger import *  # logging functions
 
 
-def run(stage: int = None) -> None:
+def run(stage: int = None, EPOCHS: int = None) -> None:
     """
     Run the pipeline.
 
@@ -16,9 +16,11 @@ def run(stage: int = None) -> None:
         None
     """
 
-    # assign stage from here
     if stage is None:
-        stage = 5
+        stage = 3
+
+    if EPOCHS is None:
+        EPOCHS = 10
 
     avbl_stgs = [i for i in range(0, 6)]  # Stages available to run
     try:
@@ -87,7 +89,7 @@ def run(stage: int = None) -> None:
         siamese_nn.fit(
             [img1_t, img2_t],
             sim_t,
-            epochs=10,
+            epochs=EPOCHS,
             validation_data=([img1_v, img2_v], sim_v),
         )
 
@@ -166,8 +168,8 @@ def run(stage: int = None) -> None:
                 label_hat = y[idx_label]
 
 
-                log_info(f'Probability Distros   for {idx}: {y_hat.flatten()}') 
-                log_info(f'Probability Predicted for {idx}: {label_hat}') 
+                log_info(f'Probability Distros for {idx}: {y_hat.flatten()}') 
+                # log_info(f'Probability Predicted {idx}: {label_hat}') 
                 idx += 1
     if stage <= 6:
         log_info("===========================================")

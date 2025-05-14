@@ -5,12 +5,13 @@ import matplotlib.pyplot as plt
 
 
 def plot_images(images: list, labels: list = None):
-    fig, axes = plt.subplots(1, 5)
+    fig, axes = plt.subplots(3, 4)
     for i, ax in enumerate(axes.flat):
         ax.imshow(images[i], cmap="gray")
         ax.set(xticks=[], yticks=[])
         if labels.any():
             ax.set_title(labels[i])
+        if i == len(images) - 1: break 
 
     plt.show()
 
@@ -35,8 +36,8 @@ def convert_gallery_to_csv(FOLDER: str, SIZE: int):
 
 
 if __name__ == "__main__":
-    FOLDER = "num"  # folder with images
-    SIZE = 64      # size of images
+    FOLDER = "vow"  # folder with images
+    SIZE = 28      # size of images
     convert_gallery_to_csv(FOLDER, SIZE)
 
     df = pd.read_csv(f"{FOLDER}/data.csv")

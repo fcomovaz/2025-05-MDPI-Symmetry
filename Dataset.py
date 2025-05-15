@@ -134,6 +134,8 @@ def make_paired_indices(
     indices = np.arange(n)
     pairs = []
 
+    num_pairs = int(num_pairs)
+
     # Set the indices for each class (e.g. label 0 has indices [0, 8, 13, ...])
     class_indices = {cls: indices[y == cls] for cls in np.unique(y)}
     classes = list(class_indices.keys())  # get the classes [0, 1, 2, ..., 9]
@@ -219,15 +221,15 @@ def create_siamese_datasets() -> None:
 
     # Crear pares para cada conjunto
     log_info("Generating training pairs")
-    train_pairs = make_paired_indices(train_df["label"].values, num_pairs=30000)
+    train_pairs = make_paired_indices(train_df["label"].values, num_pairs=6*1e2)
     train_pairs.to_csv("datasets/siamese_train_pairs.csv", index=False)
 
     log_info("Generating validation pairs")
-    val_pairs = make_paired_indices(val_df["label"].values, num_pairs=5000)
+    val_pairs = make_paired_indices(val_df["label"].values, num_pairs=6*1e1)
     val_pairs.to_csv("datasets/siamese_val_pairs.csv", index=False)
 
     log_info("Generating test pairs")
-    test_pairs = make_paired_indices(test_df["label"].values, num_pairs=9000)
+    test_pairs = make_paired_indices(test_df["label"].values, num_pairs=1e2)
     test_pairs.to_csv("datasets/siamese_test_pairs.csv", index=False)
 
     log_info("Siamese pair datasets created successfully")

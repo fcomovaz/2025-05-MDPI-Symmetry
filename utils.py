@@ -19,7 +19,8 @@ def log_function_output(function: callable = None) -> None:
         log_error(f"Error logging {function.__name__} output: {e}")
 
 
-def create_results_file(results_file: str = "results.csv") -> None:
+def create_results_file(results_file: str = "results_tests.csv") -> None:
+    full_path = f"results/{results_file}"
     try:
         cols = [
             "embedding",
@@ -34,14 +35,14 @@ def create_results_file(results_file: str = "results.csv") -> None:
             "execution_time",
         ]
         df = pd.DataFrame(columns=cols)
-        df.to_csv("results/results.csv", index=False)
+        df.to_csv(full_path, index=False)
         log_info(f"Created {results_file}")
     except Exception as e:
         log_error(f"Error creating {results_file}: {e}")
 
 
 def update_results_file(
-    results_file: str = "results.csv",
+    results_file: str = "results_tests.csv",
     embedding_type: int = 11,
     metrics: dict = {},
 ) -> None:

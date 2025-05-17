@@ -38,9 +38,9 @@ def main() -> None:
         help="Model to run (0, 1, ..., N). Default: 11.",
     )
 
-    args = parser.parse_args()
-    print(args)
-    run(args.stage, args.epochs, args.embedding)
+    args = parser.parse_args() # Parse the arguments
+    log_config(args.embedding) # Configure logging
+    run(args.stage, args.epochs, args.embedding) # Run the pipeline
 
 
 def run(stage: int = None, EPOCHS: int = None, embedding: int = None) -> None:
@@ -115,7 +115,6 @@ def run(stage: int = None, EPOCHS: int = None, embedding: int = None) -> None:
         log_info(f"Stage 6 - Test - Test samples")
         log_info("===========================================")
         test_model(embedding_type=embedding)
-        exit(0)
     if stage <= 7:
         log_info("===========================================")
         log_info(f"Stage 7 - Test Symmetrical Datasets")

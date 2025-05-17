@@ -3,4 +3,5 @@ __pycache__/
 models/
 datasets/
 results/
+logs/
 proof.py

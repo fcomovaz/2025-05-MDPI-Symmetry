@@ -3,13 +3,18 @@ from time import strftime  # Get current time
 import logging  # Set logging
 
 date_format = "%Y-%m-%d %H:%M:%S"
-logging.basicConfig(
-    level=logging.DEBUG,
-    filename=f"{strftime('%Y-%m-%d')}.log",
-    filemode="w",
-    format="[%(levelname)-7s][%(asctime)s] - %(message)s",
-    datefmt=date_format,
-)
+
+
+def log_config(embedding: int) -> None:
+    str_fmt = f"%Y-%m-%d-Embedding-{embedding}"
+    logging.basicConfig(
+        level=logging.DEBUG,
+        # filename=f"logs/{strftime('%Y-%m-%d-%HH-%MM-%SS')}.log",
+        filename=f"logs/{strftime(str_fmt)}.log",
+        filemode="w",
+        format="[%(levelname)-7s][%(asctime)s] - %(message)s",
+        datefmt=date_format,
+    )
 
 
 def log_info(message: str = "") -> None:

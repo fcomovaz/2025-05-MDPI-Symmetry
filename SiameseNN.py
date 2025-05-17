@@ -429,13 +429,13 @@ def test_model(
 
     t1 = time.time()
     pred = siamese_nn.predict([img1_t, img2_t])
+    t2 = time.time()
+    pred_time = 1000 * (t2 - t1) / len(sim_t) # time per prediction (ms)
     pred = pred.flatten()  # flatten the predictions
     pred = (pred - np.min(pred)) / (np.max(pred) - np.min(pred))  # normalize
     pred = (pred >= 0.6).astype(int)  # decision threshold
-    t2 = time.time()
-    pred_time = (t2 - t1) / len(sim_t) # time per prediction
-    now = time.strftime("%Y-%m-%d %H:%M:%S")
-    log_info(f"Time per prediction: {pred_time} seconds")
+    now = time.strftime("%Y-%m-%d-%H:%M:%S")
+    log_info(f"Time per prediction: {pred_time} ms")
     # log_info(f"Real similarity:      {sim_t[0:8]}")
     # log_info(f"Predicted similarity: {pred[0:8]}")
 

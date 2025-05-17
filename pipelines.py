@@ -67,12 +67,18 @@ def run(stage: int = None, EPOCHS: int = None, embedding: int = None) -> None:
         test_model(dataset="train", embedding_type=embedding)
     if stage <= 5:
         log_info("===========================================")
-        log_info(f"Stage 4 - Test - Test samples")
+        log_info(f"Stage 5 - Test - Validation samples")
         log_info("===========================================")
-        test_model(embedding_type=embedding)
+        test_model(dataset="val", embedding_type=embedding)
     if stage <= 6:
         log_info("===========================================")
-        log_info(f"Stage 5 - Test Symmetrical Datasets")
+        log_info(f"Stage 6 - Test - Test samples")
+        log_info("===========================================")
+        test_model(embedding_type=embedding)
+        exit(0)
+    if stage <= 7:
+        log_info("===========================================")
+        log_info(f"Stage 7 - Test Symmetrical Datasets")
         log_info("===========================================")
 
         log_info("Loading siamese pre-trained model")
@@ -114,9 +120,9 @@ def run(stage: int = None, EPOCHS: int = None, embedding: int = None) -> None:
                 # log_info(f"Probability Distribut for {idx}: {y_hat.flatten()}")
                 log_info(f"Probability Predicted for {idx}: {label_hat}")
                 idx += 1
-    if stage <= 7:
+    if stage <= 8:
         log_info("===========================================")
-        log_info(f"Stage 6 - TF Lite Optimization")
+        log_info(f"Stage 8 - TF Lite Optimization")
         log_info("===========================================")
 
         log_info("Loading siamese pre-trained model")

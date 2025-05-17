@@ -1,6 +1,8 @@
 import tensorflow as tf
 import numpy as np
 import random
+import time
+import datetime
 from colorama import Fore, Style
 
 from tensorflow.keras.models import Model  # type: ignore
@@ -9,7 +11,7 @@ from tensorflow.keras.layers import SeparableConv2D, MaxPooling2D, Input, Flatte
 from tensorflow.keras.layers import DepthwiseConv2D, Lambda, Concatenate, ReLU  # type: ignore
 from tensorflow.keras.regularizers import l1, l2, l1_l2  # type: ignore
 
-from utils import log_function_output
+from utils import log_function_output, update_results_file
 from Dataset import separate_for_training
 from Logger import *  # logging functions
 
@@ -73,7 +75,7 @@ def make_embedding(embedding_type: int = 11, mshape: tuple = (28, 28, 1)) -> Mod
         1: "LeNet5",
         2: "LeNet5Mod1",
         3: "LeNet5Mod2",
-        4: "SiameseEMbeddingMod",
+        4: "SiameseEmbeddingMod",
         5: "UltraMinimalEmbedding",
         6: "UltraMinimalEmbeddingMod",
         7: "DepthwiseOnlyEmbedding",
@@ -182,7 +184,7 @@ def make_embedding(embedding_type: int = 11, mshape: tuple = (28, 28, 1)) -> Mod
             name="embedding_vector",
             kernel_regularizer=l1_l2(0.01),
         )(x)
-        return Model(inputs=inp, outputs=outputs, name="SiameseEMbeddingMod")
+        return Model(inputs=inp, outputs=outputs, name="SiameseEmbeddingMod")
 
     if embedding_type == 5:
         inp = Input(shape=mshape, name="inp")
@@ -343,8 +345,12 @@ def load_model_w_weights(
 
     embedding = make_embedding(embedding_type)
     siamese_nn = make_siamese_model(embedding)
-    siamese_nn.load_weights(model_path)
-    return siamese_nn
+    try:
+        siamese_nn.load_weights(model_path)
+        return siamese_nn
+    except:
+        log_error(f"Error loading model/wrong embedding type")
+        return None
 
 
 def create_siamese_model(
@@ -421,10 +427,15 @@ def test_model(
     log_info("Loading siamese test inputs (img1, img2, similarity)")
     img1_t, img2_t, sim_t = separate_for_training(dataset)
 
+    t1 = time.time()
     pred = siamese_nn.predict([img1_t, img2_t])
     pred = pred.flatten()  # flatten the predictions
     pred = (pred - np.min(pred)) / (np.max(pred) - np.min(pred))  # normalize
     pred = (pred >= 0.6).astype(int)  # decision threshold
+    t2 = time.time()
+    pred_time = (t2 - t1) / len(sim_t) # time per prediction
+    now = time.strftime("%Y-%m-%d %H:%M:%S")
+    log_info(f"Time per prediction: {pred_time} seconds")
     # log_info(f"Real similarity:      {sim_t[0:8]}")
     # log_info(f"Predicted similarity: {pred[0:8]}")
 
@@ -441,13 +452,33 @@ def test_model(
     fpr, tpr, _ = roc_curve(sim_t, pred)  # return fpr, tpr, thresholds
     # fpr = false positive rate, tpr = true positive rate, thresholds = threshold values
     roc_auc = auc(fpr, tpr)  # auc returns the area under the curve
+    precision = precision_score(sim_t, pred)
+    recall = recall_score(sim_t, pred)
+    f1 = f1_score(sim_t, pred)
+    accuracy = accuracy_score(sim_t, pred)
+    r2 = r2_score(sim_t, pred)
 
+    log_info("Results:")
     log_info(f"ROC AUC:   {roc_auc}")
-    log_info(f"Precision: {precision_score(sim_t, pred)}")
-    log_info(f"Recall:    {recall_score(sim_t, pred)}")
-    log_info(f"F1 Score:  {f1_score(sim_t, pred)}")
-    log_info(f"Accuracy:  {accuracy_score(sim_t, pred)}")
-    log_info(f"R2 Score:  {r2_score(sim_t, pred)}")
+    log_info(f"Precision: {precision}")
+    log_info(f"Recall:    {recall}")
+    log_info(f"F1 Score:  {f1}")
+    log_info(f"Accuracy:  {accuracy}")
+    log_info(f"R2 Score:  {r2}")
+
+    results_dict = {
+        "dataset": [dataset],
+        "roc": [roc_auc],
+        "precision": [precision],
+        "recall": [recall],
+        "f1": [f1],
+        "accuracy": [accuracy],
+        "r2": [r2],
+        "inference_time": [pred_time],
+        "execution_time": [now],
+    }
+    update_results_file(embedding_type=embedding_type, metrics=results_dict)
+    log_info("Saving results to results/results.csv")
 
     if verbose:
         import matplotlib.pyplot as plt

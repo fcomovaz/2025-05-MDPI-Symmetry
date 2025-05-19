@@ -229,7 +229,7 @@ def create_siamese_datasets() -> None:
     val_pairs.to_csv("datasets/siamese_val_pairs.csv", index=False)
 
     log_info("Generating test pairs")
-    test_pairs = make_paired_indices(test_df["label"].values, num_pairs=1e2)
+    test_pairs = make_paired_indices(test_df["label"].values, num_pairs=1*1e2)
     test_pairs.to_csv("datasets/siamese_test_pairs.csv", index=False)
 
     log_info("Siamese pair datasets created successfully")

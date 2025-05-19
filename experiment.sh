@@ -16,7 +16,7 @@ echo "                                                                          
 # Variable config
 # ----------------------------------------------------------------
 STAGE=3
-EPOCHS=10
+EPOCHS=20
 EMB_START=0
 EMB_END=11
 SCRIPT="pipelines.py"
@@ -38,6 +38,7 @@ python --version
 for EMB in $(seq "${EMB_START}" "${EMB_END}"); do
   echo "Executing embedding=${EMB} (stage=${STAGE})"
   python "${SCRIPT}" --stage "${STAGE}" --embedding "${EMB}" --epochs "${EPOCHS}"
+  STAGE=3
 done
 
 

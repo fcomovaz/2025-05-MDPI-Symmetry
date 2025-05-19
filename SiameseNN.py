@@ -2,7 +2,6 @@ import tensorflow as tf
 import numpy as np
 import random
 import time
-import datetime
 from colorama import Fore, Style
 
 from tensorflow.keras.models import Model  # type: ignore
@@ -10,6 +9,7 @@ from tensorflow.keras.layers import Layer, Conv2D, Dense, GlobalAveragePooling2D
 from tensorflow.keras.layers import SeparableConv2D, MaxPooling2D, Input, Flatten, Dropout  # type: ignore
 from tensorflow.keras.layers import DepthwiseConv2D, Lambda, Concatenate, ReLU  # type: ignore
 from tensorflow.keras.regularizers import l1, l2, l1_l2  # type: ignore
+from tensorflow.keras.callbacks import EarlyStopping  # type: ignore
 
 from utils import log_function_output, update_results_file
 from Dataset import separate_for_training
@@ -85,6 +85,8 @@ def make_embedding(embedding_type: int = 11, mshape: tuple = (28, 28, 1)) -> Mod
         11: "UltraDepthwiseHybridLight3",
     }
 
+    reg_l1_l2 = l1_l2(1e-7, 1e-7)
+
     try:
         log_info(f"Embedding type: {embedding_type} - {embed_dict[embedding_type]}")
     except KeyError:
@@ -94,53 +96,99 @@ def make_embedding(embedding_type: int = 11, mshape: tuple = (28, 28, 1)) -> Mod
     if embedding_type == 0:
         inp = Input(shape=mshape, name="input_image")
         # First block
-        c1 = Conv2D(64, (10, 10), activation="relu")(inp)
+        c1 = Conv2D(64, (10, 10), activation="relu", kernel_regularizer=reg_l1_l2)(inp)
         m1 = MaxPooling2D(pool_size=(2, 2), padding="same")(c1)
         # Second block
-        c2 = Conv2D(128, (7, 7), activation="relu")(m1)
+        c2 = Conv2D(128, (7, 7), activation="relu", kernel_regularizer=reg_l1_l2)(m1)
         m2 = MaxPooling2D(pool_size=(2, 2), padding="same")(c2)
         # Third block
-        c3 = Conv2D(128, (4, 4), activation="relu", padding="same")(m2)
+        c3 = Conv2D(
+            128,
+            (4, 4),
+            activation="relu",
+            padding="same",
+            kernel_regularizer=reg_l1_l2,
+        )(m2)
         m3 = MaxPooling2D(pool_size=(2, 2), padding="same")(c3)
         # Final embedding block
-        c4 = Conv2D(256, (4, 4), activation="relu", padding="same")(m3)
+        c4 = Conv2D(
+            256,
+            (4, 4),
+            activation="relu",
+            padding="same",
+            kernel_regularizer=reg_l1_l2,
+        )(m3)
         f1 = Flatten()(c4)
-        d1 = Dense(4096, activation="sigmoid")(f1)
+        f1 = Dropout(0.5)(f1)
+        d1 = Dense(4096, activation="sigmoid", kernel_regularizer=reg_l1_l2)(f1)
         return Model(inputs=inp, outputs=d1, name="SiameseEmbedding")
 
     if embedding_type == 1:
         inputs = Input(shape=mshape, name="input_image")
-        x = Conv2D(6, kernel_size=(5, 5), activation="relu")(inputs)
+        x = Conv2D(
+            6,
+            kernel_size=(5, 5),
+            activation="relu",
+            kernel_regularizer=reg_l1_l2,
+        )(inputs)
         x = AveragePooling2D(pool_size=(2, 2))(x)
-        x = Conv2D(16, kernel_size=(5, 5), activation="relu")(x)
+        x = Conv2D(
+            16,
+            kernel_size=(5, 5),
+            activation="relu",
+            kernel_regularizer=reg_l1_l2,
+        )(x)
         x = AveragePooling2D(pool_size=(2, 2))(x)
         x = Flatten()(x)
-        x = Dense(120, activation="relu")(x)
-        x = Dense(84, activation="relu")(x)
-        outputs = Dense(10, activation="softmax")(x)
+        x = Dropout(0.5)(x)
+        x = Dense(120, activation="relu", kernel_regularizer=reg_l1_l2)(x)
+        x = Dense(84, activation="relu", kernel_regularizer=reg_l1_l2)(x)
+        outputs = Dense(10, activation="softmax", kernel_regularizer=reg_l1_l2)(x)
         return Model(inputs, outputs, name="LeNet5")
 
     if embedding_type == 2:
         inputs = Input(shape=mshape, name="input_image")
-        x = Conv2D(6, kernel_size=(5, 5), activation="relu")(inputs)
+        x = Conv2D(
+            6,
+            kernel_size=(5, 5),
+            activation="relu",
+            kernel_regularizer=reg_l1_l2,
+        )(inputs)
         x = AveragePooling2D(pool_size=(2, 2))(x)
-        x = Conv2D(16, kernel_size=(5, 5), activation="relu")(x)
+        x = Conv2D(
+            16,
+            kernel_size=(5, 5),
+            activation="relu",
+            kernel_regularizer=reg_l1_l2,
+        )(x)
         x = AveragePooling2D(pool_size=(2, 2))(x)
         x = Flatten()(x)
-        x = Dense(120, activation="relu")(x)
-        x = Dense(84, activation="relu")(x)
+        x = Dropout(0.5)(x)
+        x = Dense(120, activation="relu", kernel_regularizer=reg_l1_l2)(x)
+        x = Dense(84, activation="relu", kernel_regularizer=reg_l1_l2)(x)
         outputs = x
         return Model(inputs, outputs, name="LeNet5Mod1")
 
     if embedding_type == 3:
         inputs = Input(shape=mshape, name="input_image")
-        x = Conv2D(6, kernel_size=(5, 5), activation="relu")(inputs)
+        x = Conv2D(
+            6,
+            kernel_size=(5, 5),
+            activation="relu",
+            kernel_regularizer=reg_l1_l2,
+        )(inputs)
         x = AveragePooling2D(pool_size=(2, 2))(x)
-        x = Conv2D(16, kernel_size=(5, 5), activation="relu")(x)
+        x = Conv2D(
+            16,
+            kernel_size=(5, 5),
+            activation="relu",
+            kernel_regularizer=reg_l1_l2,
+        )(x)
         x = AveragePooling2D(pool_size=(2, 2))(x)
         x = Flatten()(x)
-        x = Dense(120, activation="relu")(x)
-        x = Dense(84, activation="relu")(x)
+        x = Dropout(0.5)(x)
+        x = Dense(120, activation="relu", kernel_regularizer=reg_l1_l2)(x)
+        x = Dense(84, activation="relu", kernel_regularizer=reg_l1_l2)(x)
         outputs = Dense(10, activation="sigmoid")(x)
         return Model(inputs, outputs, name="LeNet5Mod2")
 
@@ -152,7 +200,7 @@ def make_embedding(embedding_type: int = 11, mshape: tuple = (28, 28, 1)) -> Mod
             (3, 3),
             activation="relu",
             padding="same",
-            kernel_regularizer=l1_l2(0.01),
+            kernel_regularizer=reg_l1_l2,
         )(inp)
         x = MaxPooling2D((2, 2), padding="same")(x)
         # Bloque 2: conv separable (depthwise+pointwise)
@@ -161,8 +209,8 @@ def make_embedding(embedding_type: int = 11, mshape: tuple = (28, 28, 1)) -> Mod
             (3, 3),
             activation="relu",
             padding="same",
-            depthwise_regularizer=l1_l2(0.01),
-            pointwise_regularizer=l2(0.01),
+            depthwise_regularizer=reg_l1_l2,
+            pointwise_regularizer=reg_l1_l2,
         )(x)
         x = MaxPooling2D((2, 2), padding="same")(x)
         # Bloque 3: conv separable
@@ -171,32 +219,44 @@ def make_embedding(embedding_type: int = 11, mshape: tuple = (28, 28, 1)) -> Mod
             (3, 3),
             activation="relu",
             padding="same",
-            depthwise_regularizer=l1_l2(0.01),
-            pointwise_regularizer=l2(0.01),
+            depthwise_regularizer=reg_l1_l2,
+            pointwise_regularizer=reg_l1_l2,
         )(x)
         x = MaxPooling2D((2, 2), padding="same")(x)
         # Pooling global para comprimir H×W → 1
         x = GlobalAveragePooling2D()(x)
+        x = Dropout(0.5)(x)
         # Capa densa final sin activación (lineal) para embedding
         outputs = Dense(
             64,
             activation=None,
             name="embedding_vector",
-            kernel_regularizer=l1_l2(0.01),
+            kernel_regularizer=reg_l1_l2,
         )(x)
         return Model(inputs=inp, outputs=outputs, name="SiameseEmbeddingMod")
 
     if embedding_type == 5:
         inp = Input(shape=mshape, name="inp")
         # Depthwise conv para atrapar patrones locales
-        x = DepthwiseConv2D((3, 3), padding="same", activation="relu")(inp)
+        x = DepthwiseConv2D(
+            (3, 3),
+            padding="same",
+            activation="relu",
+            depthwise_regularizer=reg_l1_l2,
+        )(inp)
         # Pointwise conv para mezclar canales
-        x = Conv2D(16, (1, 1), activation="relu")(x)
+        x = Conv2D(16, (1, 1), activation="relu", kernel_regularizer=reg_l1_l2)(x)
         # Segundo bloque minimal
-        x = DepthwiseConv2D((3, 3), padding="same", activation="relu")(x)
-        x = Conv2D(32, (1, 1), activation="relu")(x)
+        x = DepthwiseConv2D(
+            (3, 3),
+            padding="same",
+            activation="relu",
+            depthwise_regularizer=reg_l1_l2,
+        )(x)
+        x = Conv2D(32, (1, 1), activation="relu", kernel_regularizer=reg_l1_l2)(x)
         # Compresión final
         x = GlobalAveragePooling2D()(x)
+        x = Dropout(0.5)(x)
         # out = Conv2D(64, (1,1), activation=None)(x[...,None,None])
         # out = out[:,0,0,:]
         return Model(inp, x, name="UltraMinimalEmbedding")
@@ -204,71 +264,206 @@ def make_embedding(embedding_type: int = 11, mshape: tuple = (28, 28, 1)) -> Mod
     if embedding_type == 6:
         inp = Input(shape=mshape, name="inp")
         # Depthwise conv para atrapar patrones locales
-        x = DepthwiseConv2D((3, 3), padding="same", activation="relu")(inp)
+        x = DepthwiseConv2D(
+            (3, 3),
+            padding="same",
+            activation="relu",
+            depthwise_regularizer=reg_l1_l2,
+        )(inp)
         # Pointwise conv para mezclar canales
-        x = Conv2D(16, (1, 1), activation="relu")(x)
+        x = Conv2D(16, (1, 1), activation="relu", kernel_regularizer=reg_l1_l2)(x)
         # Segundo bloque minimal
-        x = DepthwiseConv2D((3, 3), padding="same", activation="relu")(x)
-        x = Conv2D(32, (1, 1), activation="relu")(x)
+        x = DepthwiseConv2D(
+            (3, 3),
+            padding="same",
+            activation="relu",
+            depthwise_regularizer=reg_l1_l2,
+        )(x)
+        x = Conv2D(32, (1, 1), activation="relu", kernel_regularizer=reg_l1_l2)(x)
         # Compresión final
         x = GlobalAveragePooling2D()(x)
-        out = Conv2D(64, (1, 1), activation=None)(x[..., None, None])
+        x = Dropout(0.5)(x)
+        out = Conv2D(
+            64,
+            (1, 1),
+            activation=None,
+            kernel_regularizer=reg_l1_l2,
+        )(x[..., None, None])
         out = out[:, 0, 0, :]
         return Model(inp, out, name="UltraMinimalEmbeddingMod")
 
     if embedding_type == 7:
         inp = Input(shape=mshape, name="inp")
         # Tres bloques depthwise solamente
-        x = DepthwiseConv2D((3, 3), padding="same", activation="relu")(inp)
-        x = DepthwiseConv2D((3, 3), padding="same", activation="relu")(x)
-        x = DepthwiseConv2D((3, 3), padding="same", activation="relu")(x)
+        x = DepthwiseConv2D(
+            (3, 3),
+            padding="same",
+            activation="relu",
+            depthwise_regularizer=reg_l1_l2,
+        )(inp)
+        x = DepthwiseConv2D(
+            (3, 3),
+            padding="same",
+            activation="relu",
+            depthwise_regularizer=reg_l1_l2,
+        )(x)
+        x = DepthwiseConv2D(
+            (3, 3),
+            padding="same",
+            activation="relu",
+            depthwise_regularizer=reg_l1_l2,
+        )(x)
         x = GlobalAveragePooling2D()(x)
-        out = Dense(64, activation=None, name="embedding_vector")(x)
+        x = Dropout(0.5)(x)
+        out = Dense(
+            64,
+            activation=None,
+            name="embedding_vector",
+            kernel_regularizer=reg_l1_l2,
+        )(x)
         return Model(inp, out, name="DepthwiseOnlyEmbedding")
 
     if embedding_type == 8:
         inp = Input(shape=mshape, name="inp")
         # Fire module
-        x = Conv2D(16, (1, 1), activation="relu", padding="same")(inp)  # squeeze
-        e1 = Conv2D(32, (1, 1), activation="relu", padding="same")(x)  # expand 1x1
-        e3 = Conv2D(32, (3, 3), activation="relu", padding="same")(x)  # expand 3x3
+        x = Conv2D(
+            16,
+            (1, 1),
+            activation="relu",
+            padding="same",
+            kernel_regularizer=reg_l1_l2,
+        )(
+            inp
+        )  # squeeze
+        e1 = Conv2D(
+            32,
+            (1, 1),
+            activation="relu",
+            padding="same",
+            kernel_regularizer=reg_l1_l2,
+        )(
+            x
+        )  # expand 1x1
+        e3 = Conv2D(
+            32,
+            (3, 3),
+            activation="relu",
+            padding="same",
+            kernel_regularizer=reg_l1_l2,
+        )(
+            x
+        )  # expand 3x3
         x = Concatenate()([e1, e3])
         # Otro fire módulo
-        x = Conv2D(24, (1, 1), activation="relu", padding="same")(x)
-        e1 = Conv2D(48, (1, 1), activation="relu", padding="same")(x)
-        e3 = Conv2D(48, (3, 3), activation="relu", padding="same")(x)
+        x = Conv2D(
+            24,
+            (1, 1),
+            activation="relu",
+            padding="same",
+            kernel_regularizer=reg_l1_l2,
+        )(x)
+        e1 = Conv2D(
+            48,
+            (1, 1),
+            activation="relu",
+            padding="same",
+            kernel_regularizer=reg_l1_l2,
+        )(x)
+        e3 = Conv2D(
+            48,
+            (3, 3),
+            activation="relu",
+            padding="same",
+            kernel_regularizer=reg_l1_l2,
+        )(x)
         x = Concatenate()([e1, e3])
         # Pool + embedding
         x = GlobalAveragePooling2D()(x)
-        out = Conv2D(64, (1, 1), activation=None)(x[..., None, None])
+        x = Dropout(0.5)(x)
+        out = Conv2D(
+            64,
+            (1, 1),
+            activation=None,
+            kernel_regularizer=reg_l1_l2,
+        )(x[..., None, None])
         out = out[:, 0, 0, :]
         return Model(inp, out, name="SqueezeNetLiteEmbedding")
 
     if embedding_type == 9:
         inp = Input(shape=mshape, name="inp")
-        x = DepthwiseConv2D((3, 3), padding="same", activation="relu")(inp)
-        x = DepthwiseConv2D((3, 3), padding="same", activation="relu")(x)
-        x = Conv2D(24, (1, 1), activation="relu")(x)
+        x = DepthwiseConv2D(
+            (3, 3),
+            padding="same",
+            activation="relu",
+            depthwise_regularizer=reg_l1_l2,
+        )(inp)
+        x = DepthwiseConv2D(
+            (3, 3),
+            padding="same",
+            activation="relu",
+            depthwise_regularizer=reg_l1_l2,
+        )(x)
+        x = Conv2D(
+            24,
+            (1, 1),
+            activation="relu",
+            kernel_regularizer=reg_l1_l2,
+        )(x)
         x = GlobalAveragePooling2D()(x)
+        x = Dropout(0.5)(x)
         out = Dense(16, activation=None, name="embedding_vector")(x)
         return Model(inputs=inp, outputs=out, name="UltraDepthwiseHybridLight1")
 
     if embedding_type == 10:
         inp = Input(shape=mshape, name="inp")
-        x = DepthwiseConv2D((3, 3), padding="same", activation="relu")(inp)
-        x = DepthwiseConv2D((3, 3), padding="same", activation="relu")(x)
-        x = Conv2D(24, (1, 1), activation="relu")(x)
+        x = DepthwiseConv2D(
+            (3, 3),
+            padding="same",
+            activation="relu",
+            depthwise_regularizer=reg_l1_l2,
+        )(inp)
+        x = DepthwiseConv2D(
+            (3, 3),
+            padding="same",
+            activation="relu",
+            depthwise_regularizer=reg_l1_l2,
+        )(x)
+        x = Conv2D(
+            24,
+            (1, 1),
+            activation="relu",
+            kernel_regularizer=reg_l1_l2,
+        )(x)
         x = GlobalAveragePooling2D()(x)
+        x = Dropout(0.5)(x)
         out = Dense(8, activation=None, name="embedding_vector")(x)
         return Model(inputs=inp, outputs=out, name="UltraDepthwiseHybridLight2")
 
     if embedding_type == 11:
         inp = Input((28, 28, 1), name="inp")
-        x = DepthwiseConv2D((3, 3), padding="same", activation="relu")(inp)
-        x = DepthwiseConv2D((3, 3), padding="same", activation="relu")(x)
-        x = Conv2D(2, (1, 1), activation="relu")(x)
+        x = DepthwiseConv2D(
+            (3, 3),
+            padding="same",
+            activation="relu",
+            depthwise_regularizer=reg_l1_l2,
+        )(inp)
+        x = DepthwiseConv2D(
+            (3, 3),
+            padding="same",
+            activation="relu",
+            depthwise_regularizer=reg_l1_l2,
+        )(x)
+        x = Conv2D(2, (1, 1), activation="relu", kernel_regularizer=reg_l1_l2)(x)
         x = GlobalAveragePooling2D()(x)
-        out = Dense(4, activation=None, name="embedding_vector")(x)  # 2 make it worst
+        x = Dropout(0.5)(x)
+        out = Dense(
+            4,
+            activation=None,
+            name="embedding_vector",
+            kernel_regularizer=reg_l1_l2,
+        )(
+            x
+        )  # 2 make it worst
         return Model(inputs=inp, outputs=out, name="UltraDepthwiseHybridLight3")
 
 
@@ -349,7 +544,7 @@ def load_model_w_weights(
         siamese_nn.load_weights(model_path)
         return siamese_nn
     except:
-        log_error(f"Error loading model/wrong embedding type")
+        log_error(f"Error loading model - wrong embedding type")
         return None
 
 
@@ -389,11 +584,18 @@ def create_siamese_model(
     log_function_output(siamese_nn.summary)
 
     log_info("Training the model")
+    esc = EarlyStopping(
+        monitor="val_loss",  # Métrica a monitorear, en este caso, la pérdida de validación
+        min_delta=1e-4,  # Umbral que debe superar la métrica para considerarse una mejora
+        patience=3,  # Número de épocas sin mejora antes de detener la formación
+        restore_best_weights=True,
+    )
     siamese_nn.fit(
         [img1_t, img2_t],
         sim_t,
         epochs=EPOCHS,
         validation_data=([img1_v, img2_v], sim_v),
+        callbacks=[esc],
     )
 
     log_info("Saving the model")
@@ -430,7 +632,7 @@ def test_model(
     t1 = time.time()
     pred = siamese_nn.predict([img1_t, img2_t])
     t2 = time.time()
-    pred_time = 1000 * (t2 - t1) / len(sim_t) # time per prediction (ms)
+    pred_time = 1000 * (t2 - t1) / len(sim_t)  # time per prediction (ms)
     pred = pred.flatten()  # flatten the predictions
     pred = (pred - np.min(pred)) / (np.max(pred) - np.min(pred))  # normalize
     pred = (pred >= 0.6).astype(int)  # decision threshold
@@ -499,3 +701,73 @@ def test_model(
         plt.title("Receiver operating characteristic example")
         plt.legend(loc="lower right")
         plt.show()
+
+
+def test_custom_datasets(embedding: int = None, my_datasets: list = None) -> None:
+    """
+    Test the siamese model on custom datasets.
+
+    Parameters
+    ----------
+    embedding_type : int, optional
+        Type of embedding to use (default: 11).
+
+    Returns
+    -------
+    None
+    """
+    log_info("Loading siamese pre-trained model")
+    siamese_nn = load_model_w_weights(embedding_type=embedding)
+
+    import pandas as pd
+
+    if my_datasets is None:
+        my_datasets = ["vow", "num", "jap", "kor", "hand"]
+    scores = []  # scores of each dataset (for dictionary)
+    for d in my_datasets:
+        log_info(f"Dataset: {d}")
+        try:
+            df = pd.read_csv(f"gallery/{d}/data.csv")
+        except:
+            log_warning("Collab detected. Using subfolder 2025-05-MDPI-Symmetry")
+            df = pd.read_csv(f"2025-05-MDPI-Symmetry/gallery/{d}/data.csv")
+        y = df["label"].values
+        X = df.drop(columns=["label"]).values
+        X_r = X.reshape(-1, 28, 28, 1).astype(np.float32)  # current image size
+        # X_r = tf.image.resize(X_r, (28, 28)) # resize in case it is not 28x28
+
+        idx = 0  # index to know which image is being processed
+        idx_correct = 0  # index to know which prediction is correct
+        for ref_img in X_r:
+            X_p = np.repeat(ref_img[None, ...], X_r.shape[0], axis=0)
+            # X_p     = np.repeat(ref_img, X_r.shape[0], axis=0)
+            # —> ahora X_p.shape == X_r.shape == (N,64,64,1)
+
+            # 3) predice
+            y_hat = siamese_nn.predict([X_r, X_p], batch_size=32)
+            A = y_hat - np.min(y_hat)
+            B = np.max(y_hat) - np.min(y_hat)
+            y_hat = A / B  # normalize
+            # y_hat = (y_hat >= 0.4).astype(int)  # decision threshold
+            # y_hat = np.round(y_hat, 2)
+            # from label choose the one with highest probability in y_hat
+            # so get the highst index and convert to label
+            idx_label = np.argmax(y_hat.flatten(), axis=0)
+            label_hat = y[idx_label]
+
+            # log_info(f"Probability Distribut for {idx}: {y_hat.flatten()}")
+            idx_correct += int(idx == idx_label)  # check if prediction is correct
+            log_info(f"Probability Predicted for {idx}: {label_hat}")
+            idx += 1
+        acc_percent = idx_correct / len(y) * 100
+        scores.append(acc_percent)  # append accuracy 4 each dataset
+        log_info(f"Accuracy for {d}: {acc_percent:.2f}%")
+    avg_acc = sum(scores) / len(my_datasets)  # average accuracy
+    scores.append(avg_acc)  # append average accuracy for all datasets
+    my_datasets.append("overall")  # add an overall accuracy
+    acc_dict = {k: [v] for k, v in zip(my_datasets, scores)}
+    update_results_file(
+        results_file="results_nonseen.csv",
+        embedding_type=embedding,
+        metrics=acc_dict,
+    )

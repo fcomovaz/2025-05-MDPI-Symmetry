@@ -85,7 +85,7 @@ def make_embedding(embedding_type: int = 11, mshape: tuple = (28, 28, 1)) -> Mod
         11: "UltraDepthwiseHybridLight3",
     }
 
-    reg_l1_l2 = l1_l2(1e-7, 1e-7)
+    reg_l1_l2 = l1_l2(1e-8, 1e-8)
 
     try:
         log_info(f"Embedding type: {embedding_type} - {embed_dict[embedding_type]}")

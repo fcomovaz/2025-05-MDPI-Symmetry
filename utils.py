@@ -22,18 +22,21 @@ def log_function_output(function: callable = None) -> None:
 def create_results_file(results_file: str = "results_tests.csv") -> None:
     full_path = f"results/{results_file}"
     try:
-        cols = [
-            "embedding",
-            "dataset",
-            "roc",
-            "precision",
-            "recall",
-            "f1",
-            "accuracy",
-            "r2",
-            "inference_time",
-            "execution_time",
-        ]
+        if results_file == "results_tests.csv":
+            cols = [
+                "embedding",
+                "dataset",
+                "roc",
+                "precision",
+                "recall",
+                "f1",
+                "accuracy",
+                "r2",
+                "inference_time",
+                "execution_time",
+            ]
+        else:
+            cols = ["embedding", "vow", "num", "jap", "kor", "hand"]
         df = pd.DataFrame(columns=cols)
         df.to_csv(full_path, index=False)
         log_info(f"Created {results_file}")
@@ -64,20 +67,44 @@ def update_results_file(
         10: "UltraDepthwiseHybridLight2",
         11: "UltraDepthwiseHybridLight3",
     }
-    embed_name = embed_dict[embedding_type]
+    embed_name = embed_dict.get(embedding_type, str(embedding_type))
 
-    df = pd.read_csv(full_path)  # read the file
+    if not os.path.exists(full_path):
+        create_results_file(results_file)
 
-    mask = (df["embedding"] == embed_name) & (df["dataset"] == metrics["dataset"][0])
-    if mask.any():
-        # Actualizar sólo las columnas métricas
-        for col, vals in metrics.items():
-            df.loc[mask, col] = vals[0]
+    df = pd.read_csv(full_path)
+
+    if results_file == "results_tests.csv":
+        # 2) Carga y busca fila
+        dataset = metrics.get("dataset", [None])[0]
+        mask = (df["embedding"] == embed_name) & (df["dataset"] == dataset)
+
+        if mask.any():
+            # Actualiza columnas existentes
+            for col, vals in metrics.items():
+                df.loc[mask, col] = vals[0]
+        else:
+            # Inserta fila nueva
+            row = {"embedding": embed_name}
+            row.update({col: vals[0] for col, vals in metrics.items()})
+            df = pd.concat([df, pd.DataFrame([row])], ignore_index=True)
+
+    # -------------------------------
+    # CASO 2: otro archivo → write-only
+    # -------------------------------
     else:
-        # Insertar fila nueva (fusionamos embedding + metrics)
-        row = {"embedding": embed_name}
-        row.update({col: vals[0] for col, vals in metrics.items()})
-        df = pd.concat([df, pd.DataFrame([row])], ignore_index=True)
+        # 2) Carga y busca fila
+        mask = df["embedding"] == embed_name
 
-    # 5. Guardamos de vuelta
+        if mask.any():
+            # Actualiza columnas existentes
+            for col, vals in metrics.items():
+                df.loc[mask, col] = vals[0]
+        else:
+            # Inserta fila nueva
+            row = {"embedding": embed_name}
+            row.update({col: vals[0] for col, vals in metrics.items()})
+            df = pd.concat([df, pd.DataFrame([row])], ignore_index=True)
+
+    # 3) Guarda de vuelta
     df.to_csv(full_path, index=False)

@@ -221,15 +221,15 @@ def create_siamese_datasets() -> None:
 
     # Crear pares para cada conjunto
     log_info("Generating training pairs")
-    train_pairs = make_paired_indices(train_df["label"].values, num_pairs=6*1e3)
+    train_pairs = make_paired_indices(train_df["label"].values, num_pairs=6*1e4)
     train_pairs.to_csv("datasets/siamese_train_pairs.csv", index=False)
 
     log_info("Generating validation pairs")
-    val_pairs = make_paired_indices(val_df["label"].values, num_pairs=6*1e2)
+    val_pairs = make_paired_indices(val_df["label"].values, num_pairs=6*1e3)
     val_pairs.to_csv("datasets/siamese_val_pairs.csv", index=False)
 
     log_info("Generating test pairs")
-    test_pairs = make_paired_indices(test_df["label"].values, num_pairs=1*1e3)
+    test_pairs = make_paired_indices(test_df["label"].values, num_pairs=1*1e4)
     test_pairs.to_csv("datasets/siamese_test_pairs.csv", index=False)
 
     log_info("Siamese pair datasets created successfully")

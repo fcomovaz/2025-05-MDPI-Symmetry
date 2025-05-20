@@ -1,0 +1,13 @@
+embedding,vow,num,jap,kor,hand,overall
+SiameseEmbedding,100.0,80.0,60.0,54.54545454545454,70.0,72.9090909090909
+LeNet5,20.0,10.0,0.0,9.090909090909092,10.0,9.818181818181818
+LeNet5Mod1,20.0,0.0,0.0,0.0,30.0,10.0
+LeNet5Mod2,0.0,60.0,20.0,54.54545454545454,100.0,46.90909090909091
+SiameseEmbeddingMod,60.0,60.0,80.0,63.63636363636363,60.0,64.72727272727272
+UltraMinimalEmbedding,0.0,0.0,0.0,0.0,10.0,2.0
+UltraMinimalEmbeddingMod,100.0,100.0,100.0,100.0,100.0,100.0
+DepthwiseOnlyEmbedding,100.0,100.0,100.0,100.0,100.0,100.0
+SqueezeNetLiteEmbedding,100.0,100.0,100.0,100.0,100.0,100.0
+UltraDepthwiseHybridLight1,0.0,0.0,0.0,0.0,0.0,0.0
+UltraDepthwiseHybridLight2,0.0,0.0,0.0,0.0,0.0,0.0
+UltraDepthwiseHybridLight3,0.0,0.0,0.0,0.0,0.0,0.0
